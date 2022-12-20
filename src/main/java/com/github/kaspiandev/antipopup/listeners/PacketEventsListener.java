@@ -21,32 +21,34 @@ public class PacketEventsListener extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() == PacketType.Status.Server.RESPONSE) {
-            WrapperStatusServerResponse wrapper = new WrapperStatusServerResponse(event);
-            JsonObject newObj = wrapper.getComponent();
-            newObj.addProperty("preventsChatReports", true);
-            wrapper.setComponent(newObj);
-        }
-        if (event.getPacketType() == PacketType.Play.Server.SERVER_DATA) {
-            WrapperPlayServerServerData serverData = new WrapperPlayServerServerData(event);
-            serverData.setEnforceSecureChat(true);
-        }
-        if (event.getPacketType() == PacketType.Play.Server.CHAT_MESSAGE
-                    && AntiPopup.config.getBoolean("strip-signature", true)) {
-            WrapperPlayServerChatMessage chatMessage = new WrapperPlayServerChatMessage(event);
-            ChatMessage message = chatMessage.getMessage();
-            if (message instanceof ChatMessage_v1_19_1 v1_19_1) {
-                // We wanna trick the system by giving it random crap
-                v1_19_1.setSignature(new byte[0]);
-                v1_19_1.setSalt(0);
-                v1_19_1.setSenderUUID(new UUID(0L, 0L));
-                v1_19_1.setPreviousSignature(null);
+    public void onPacketSend(PacketSendEvent event) throws IllegalStateException{
+        try {
+            if (event.getPacketType() == PacketType.Status.Server.RESPONSE) {
+                WrapperStatusServerResponse wrapper = new WrapperStatusServerResponse(event);
+                JsonObject newObj = wrapper.getComponent();
+                newObj.addProperty("preventsChatReports", true);
+                wrapper.setComponent(newObj);
             }
-        }
-        if (event.getPacketType() == PacketType.Play.Server.PLAYER_CHAT_HEADER
+            if (event.getPacketType() == PacketType.Play.Server.SERVER_DATA) {
+                WrapperPlayServerServerData serverData = new WrapperPlayServerServerData(event);
+                serverData.setEnforceSecureChat(true);
+            }
+            if (event.getPacketType() == PacketType.Play.Server.CHAT_MESSAGE
+                    && AntiPopup.config.getBoolean("strip-signature", true)) {
+                WrapperPlayServerChatMessage chatMessage = new WrapperPlayServerChatMessage(event);
+                ChatMessage message = chatMessage.getMessage();
+                if (message instanceof ChatMessage_v1_19_1 v1_19_1) {
+                    // We wanna trick the system by giving it random crap
+                    v1_19_1.setSignature(new byte[0]);
+                    v1_19_1.setSalt(0);
+                    v1_19_1.setSenderUUID(new UUID(0L, 0L));
+                    v1_19_1.setPreviousSignature(null);
+                }
+            }
+            if (event.getPacketType() == PacketType.Play.Server.PLAYER_CHAT_HEADER
                     && AntiPopup.config.getBoolean("dont-send-header", true)) {
-            event.setCancelled(true);
-        }
+                event.setCancelled(true);
+            }
+        } catch (java.lang.IllegalStateException e) { }
     }
 }
